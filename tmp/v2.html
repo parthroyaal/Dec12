@@ -1,0 +1,67 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <title>TradingView Chart with Streaming Replay</title>
+</head>
+<body>
+<div id="chart_container"></div>
+<div>
+  <button id="playPauseBtn">Play</button>
+  <select id="playbackSpeed">
+    <option value="1">1x</option>
+    <option value="2">2x</option>
+  </select>
+</div>
+
+<script src="charting_library/charting_library.standalone.js"></script>
+<script>
+const initialLoadDate = new Date('2024-10-14 09:16:00').getTime();
+let historicalData = [];
+let streamingData = [];
+let isPlaying = false;
+let playbackSpeed = 1;
+let currentIndex = 0;
+let playInterval;
+let widget;
+
+
+async function readCSV(filePath) {
+  // ... (CSV parsing logic - same as the last example)
+}
+
+const configurationData = { // ... same as before
+};
+
+const Datafeed = {
+  // ... (onReady, resolveSymbol, getBars - same as the last example)
+};
+
+async function initializeChart() {
+  const data = await readCSV('./data1.csv');
+  historicalData = data.filter(bar => bar.time < initialLoadDate);
+  streamingData = data.filter(bar => bar.time >= initialLoadDate);
+
+  widget = new TradingView.widget({
+    debug: true,
+    symbol: 'BITCOIN',
+    interval: '1', // Set your desired interval
+    container_id: 'chart_container',
+    datafeed: Datafeed,
+    library_path: 'charting_library/',
+    locale: 'en',
+    autosize: true,
+    onChartReady: () => {
+      widget.chart().setData(historicalData);
+    }
+  });
+}
+
+function playStreamingData() { // ... (same as before) }
+function updatePlayPauseButton() { // ... (same as before) }
+
+// Event listeners for play/pause and playback speed (same as before)
+  
+initializeChart();
+</script>
+</body>
+</html>
