@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Floating Movable Rectangle with Data</title>
+  <style>
+    body {
+      margin: 0;
+      overflow: hidden;
+    }
+    #myCanvas {
+      display: block;
+      margin: 0 auto;
+      background-color: #f0f0f0;
+    }
+    .floating-rectangle {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      width: 200px;
+      height: 100px;
+      background-color: rgba(0, 128, 255, 0.8);
+      border: 2px solid #0056b3;
+      border-radius: 4px;
+      padding: 10px;
+      box-sizing: border-box;
+      cursor: grab;
+      touch-action: none;
+      color: white;
+      font-family: Arial, sans-serif;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+  </style>
+</head>
+<body>
+
+<canvas id="myCanvas" width="300" height="150"></canvas>
+<div class="floating-rectangle" id="floatingRectangle">
+  Loading data...
+</div>
+
+<script>
+  const canvas = document.getElementById('myCanvas');
+  const ctx = canvas.getContext('2d');
+
+  // Draw a line on the canvas
+  ctx.strokeStyle = 'red';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(50, 50);
+  ctx.lineTo(250, 100);
+  ctx.stroke();
+
+  // Floating rectangle logic
+  const floatingRectangle = document.getElementById('floatingRectangle');
+  let isDragging = false;
+  let offsetX = 0;
+  let offsetY = 0;
+
+  const startDrag = (e) => {
+    isDragging = true;
+    const rect = floatingRectangle.getBoundingClientRect();
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+    offsetX = clientX - rect.left;
+    offsetY = clientY - rect.top;
+    floatingRectangle.style.cursor = 'grabbing';
+  };
+
+  const onDrag = (e) => {
+    if (!isDragging) return;
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+    floatingRectangle.style.left = `${clientX - offsetX}px`;
+    floatingRectangle.style.top = `${clientY - offsetY}px`;
+  };
+
+  const endDrag = () => {
+    isDragging = false;
+    floatingRectangle.style.cursor = 'grab';
+  };
+
+  // Attach event listeners
+  floatingRectangle.addEventListener('mousedown', startDrag);
+  floatingRectangle.addEventListener('touchstart', startDrag, { passive: false });
+  document.addEventListener('mousemove', onDrag);
+  document.addEventListener('touchmove', onDrag, { passive: false });
+  document.addEventListener('mouseup', endDrag);
+  document.addEventListener('touchend', endDrag);
+
+  // Generate random data
+  function genData() {
+    return { 
+      open: Math.floor(Math.random() * 100), 
+      high: Math.floor(Math.random() * 100), 
+      low: Math.floor(Math.random() * 100), 
+      close: Math.floor(Math.random() * 100), 
+      volume: Math.floor(Math.random() * 1000) // Volume could have a larger range
+    };
+  }
+
+  // Update rectangle content
+  function updateData() {
+    const data = genData();
+    floatingRectangle.innerHTML = `
+      <strong>Stock Data:</strong><br>
+      Open: ${data.open}<br>
+      High: ${data.high}<br>
+      Low: ${data.low}<br>
+      Close: ${data.close}<br>
+      Volume: ${data.volume}
+    `;
+  }
+
+  // Update data every 1 second
+  setInterval(updateData, 1000);
+
+  // Initialize the first data display
+  updateData();
+</script>
+
+</body>
+</html>

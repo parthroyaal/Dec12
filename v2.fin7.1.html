@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Advanced Trading Simulator</title>
+    <script src="https://unpkg.com/lightweight-charts/dist/lightweight-charts.standalone.production.js"></script>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        .container {
+            display: grid;
+            grid-template-columns: 3fr 1fr;
+            gap: 20px;
+        }
+        #chart_container {
+            width: 100%;
+            height: 600px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        #trade-stats {
+            display: flex;
+            justify-content: space-between;
+            background-color: #ffffff;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 15px;
+        }
+        .stat-item {
+            text-align: center;
+            flex-grow: 1;
+        }
+        .stat-value {
+            font-weight: bold;
+            font-size: 1.2em;
+        }
+        #controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        #controls button {
+            flex-grow: 1;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        #longBtn {
+            background-color: #4CAF50;
+            color: white;
+        }
+        #shortBtn {
+            background-color: #F44336;
+            color: white;
+        }
+        #pauseBtn {
+            background-color: #2196F3;
+            color: white;
+        }
+        #trade-history {
+            max-height: 400px;
+            overflow-y: auto;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            padding: 15px;
+        }
+        .trade-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #f1f1f1;
+        }
+        .trade-item:last-child {
+            border-bottom: none;
+        }
+        .profit-positive {
+            color: green;
+        }
+        .profit-negative {
+            color: red;
+        }
+    </style>
+</head>
+<body>
+    <div id="trade-stats">
+        <div class="stat-item">
+            <div>Total Trades</div>
+            <div class="stat-value" id="total-trades">0</div>
+        </div>
+        <div class="stat-item">
+            <div>Profitable Trades</div>
+            <div class="stat-value" id="profitable-trades">0</div>
+        </div>
+        <div class="stat-item">
+            <div>Total Profit</div>
+            <div class="stat-value" id="total-profit">$0.00</div>
+        </div>
+        <div class="stat-item">
+            <div>Win Rate</div>
+            <div class="stat-value" id="win-rate">0%</div>
+        </div>
+    </div>
+
+    <div id="controls">
+        <button id="longBtn">Long</button>
+        <button id="shortBtn">Short</button>
+        <button id="pauseBtn">Pause</button>
+    </div>
+
+    <div class="container">
+        <div id="chart_container"></div>
+        <div id="trade-history">
+            <h3>Trade History</h3>
+            <div id="trade-list"></div>
+        </div>
+    </div>
+
+    <script>
+const data = `time,open,high,low,close,volume
+1728877500,23654.15,23666.2,23632.0,23638.4,0
+1728877505,23638.05,23644.4,23630.75,23642.55,0
+1728877510,23643.5,23669.05,23643.5,23657.65,0
+1728877515,23665.65,23672.35,23660.25,23670.35,0
+1728877520,23675.05,23679.5,23670.3,23670.3,0
+1728877525,23675.35,23687.75,23674.95,23681.5,0
+1728877530,23679.7,23683.15,23674.2,23679.35,0
+1728877535,23680.05,23681.0,23678.75,23681.0,0
+1728877540,23682.3,23684.0,23676.25,23676.25,0
+1728877545,23680.2,23680.2,23673.05,23680.15,0
+1728877550,23680.45,23681.85,23678.6,23678.8,0
+1728877555,23676.65,23678.95,23674.1,23674.1,0
+1728877560,23674.25,23681.6,23674.25,23675.05,0
+1728877565,23676.35,23679.2,23676.15,23679.2,0
+1728877570,23677.9,23677.9,23674.8,23676.25,0
+1728877575,23676.85,23678.15,23674.55,23677.3,0
+1728877580,23676.35,23679.3,23674.0,23679.3,0
+1728877585,23680.1,23691.65,23680.1,23690.55,0
+1728877590,23691.15,23696.1,23688.7,23693.0,0
+1728877595,23693.5,23697.3,23689.95,23691.3,0
+1728877600,23694.7,23696.4,23691.0,23696.4,0`;
+
+// Convert CSV string to an array of objects
+const marketData = data.split('\n').slice(1).map(line => {
+    const [time, open, high, low, close, volume] = line.split(',');
+    return {
+        time: parseInt(time),
+        open: parseFloat(open),
+        high: parseFloat(high),
+        low: parseFloat(low),
+        close: parseFloat(close),
+        volume: parseInt(volume)
+    };
+});
+
+console.log(marketData);
+
+        // Trading State Variables
+        let currentPrice = null;
+        let inTrade = false;
+        let tradeType = null;
+        let entryPrice = null;
+
+        // Performance Tracking
+        const performanceStats = {
+            totalTrades: 0,
+            profitableTrades: 0,
+            totalProfit: 0,
+            tradeHistory: []
+        };
+
+        // Chart Initialization
+        const chartContainer = document.getElementById('chart_container');
+        const chart = LightweightCharts.createChart(chartContainer, {
+            width: chartContainer.clientWidth,
+            height: chartContainer.clientHeight,
+            layout: { backgroundColor: '#ffffff' },
+            grid: { 
+                vertLines: { color: '#e1ecf7' },
+                horzLines: { color: '#e1ecf7' }
+            }
+        });
+
+        const candleSeries = chart.addCandlestickSeries({
+            upColor: 'green',
+            downColor: 'red',
+            wickUpColor: 'green',
+            wickDownColor: 'red'
+        });
+
+        // Populate Initial Chart Data
+        function initializeChartData() {
+            candleSeries.setData(marketData);
+        }
+
+        // Trade Logging Function
+        function logTrade(type, entry, exit) {
+            const profit = type === 'Long' 
+                ? exit - entry 
+                : entry - exit;
+            
+            const profitPercentage = Math.abs((profit / entry) * 100);
+
+            const tradeRecord = {
+                type,
+                entryPrice: entry,
+                exitPrice: exit,
+                profit,
+                profitPercentage,
+                timestamp: new Date().toLocaleString()
+            };
+
+            performanceStats.totalTrades++;
+            performanceStats.totalProfit += profit;
+            
+            if (profit > 0) {
+                performanceStats.profitableTrades++;
+            }
+
+            performanceStats.tradeHistory.unshift(tradeRecord);
+            updateTradeDisplay(tradeRecord);
+            updatePerformanceStats();
+        }
+
+        // Update Trade Display
+        function updateTradeDisplay(trade) {
+            const tradeList = document.getElementById('trade-list');
+            const tradeItem = document.createElement('div');
+            tradeItem.classList.add('trade-item');
+            
+            const profitClass = trade.profit > 0 
+                ? 'profit-positive' 
+                : 'profit-negative';
+
+            tradeItem.innerHTML = `
+                <span>${trade.type} Trade</span>
+                <span>Entry: $${trade.entryPrice.toFixed(2)}</span>
+                <span>Exit: $${trade.exitPrice.toFixed(2)}</span>
+                <span class="${profitClass}">
+                    ${trade.profit > 0 ? '+' : ''}$${trade.profit.toFixed(2)}
+                </span>
+            `;
+
+            tradeList.prepend(tradeItem);
+        }
+
+        // Update Performance Statistics
+        function updatePerformanceStats() {
+            const { totalTrades, profitableTrades, totalProfit } = performanceStats;
+            
+            document.getElementById('total-trades').textContent = totalTrades;
+            document.getElementById('profitable-trades').textContent = profitableTrades; document.getElementById('total-profit').textContent = `$${totalProfit.toFixed(2)}`;
+            const winRate = totalTrades > 0 
+                ? ((profitableTrades / totalTrades) * 100).toFixed(2) 
+                : '0.00';
+            document.getElementById('win-rate').textContent = `${winRate}%`;
+        }
+
+        // Trade Execution Logic
+        function executeTrade(type) {
+            if (currentPrice !== null) {
+                if (!inTrade) {
+                    inTrade = true;
+                    tradeType = type;
+                    entryPrice = currentPrice;
+                    console.log(`${type} Entry at: $${entryPrice.toFixed(2)}`);
+                } else {
+                    const exitPrice = currentPrice;
+                    logTrade(tradeType, entryPrice, exitPrice);
+                    inTrade = false;
+                    entryPrice = null;
+                    tradeType = null;
+                }
+            } else {
+                console.log('No current price available for trading.');
+            }
+        }
+
+        // Event Listeners for Trading Buttons
+        document.getElementById('longBtn').addEventListener('click', () => executeTrade('Long'));
+        document.getElementById('shortBtn').addEventListener('click', () => executeTrade('Short'));
+        document.getElementById('pauseBtn').addEventListener('click', () => {
+            // Pause functionality can be implemented here
+            console.log('Trading paused.');
+        });
+
+        // Simulate Price Updates
+        function updatePrice() {
+            // Simulate price updates (this would be replaced with real-time data in a live application)
+            currentPrice = marketData[Math.floor(Math.random() * marketData.length)].close;
+            candleSeries.update({ time: Date.now() / 1000, value: currentPrice });
+        }
+
+        // Initialize Chart and Start Price Updates
+        initializeChartData();
+        setInterval(updatePrice, 5000); // Update price every 5 seconds
+
+    </script>
+</body>
+</html> 
