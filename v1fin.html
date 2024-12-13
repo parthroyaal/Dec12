@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Trading Simulator with IST Updates</title>
+    <script src="https://unpkg.com/lightweight-charts/dist/lightweight-charts.standalone.production.js"></script>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        .container {
+            display: grid;
+            grid-template-columns: 3fr 1fr;
+            gap: 20px;
+        }
+        #chart_container {
+            width: 100%;
+            height: 600px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+    </style>
+</head>
+<body>
+    
+
+    <div id="controls">
+        <button id="longBtn">Long</button>
+        <button id="shortBtn">Short</button>
+        <button id="pauseBtn">Pause</button>
+    </div>
+
+    <div class="container">
+        <div id="chart_container"></div>
+    </div>
+ 
+    <script>
+        const marketData = [
+            {
+                time: 1728877500,
+                open: 23654.15,
+                high: 23666.2,
+                low: 23632,
+                close: 23638.4,
+                volume: 0
+            },
+            {
+                time: 1728877505,
+                open: 23638.05,
+                high: 23644.4,
+                low: 23630.75,
+                close: 23642.55,
+                volume: 0
+            },
+            {
+                time: 1728877510,
+                open: 23643.5,
+                high: 23669.05,
+                low: 23643.5,
+                close: 23657.65,
+                volume: 0
+            },
+            {
+                time: 1728877515,
+                open: 23665.65,
+                high: 23672.35,
+                low: 23660.25,
+                close: 23670.35,
+                volume: 0
+            },
+            {
+                time: 1728877520,
+                open: 23675.05,
+                high: 23679.5,
+                low: 23670.3,
+                close: 23670.3,
+                volume: 0
+            },
+            {
+                time: 1728877525,
+                open: 23675.35,
+                high: 23687.75,
+                low: 23674.95,
+                close: 23681.5,
+                volume: 0
+            }
+        ].map(candle => ({
+            ...candle,
+            time: candle.time + (5 * 3600) + (30 * 60) // Convert to IST
+        }));
+
+        const chartContainer = document.getElementById('chart_container');
+        const chart = LightweightCharts.createChart(chartContainer, {
+            width: chartContainer.clientWidth,
+            height: chartContainer.clientHeight,
+            layout: { backgroundColor: '#ffffff' },
+            timeScale: {
+                timeVisible: true,
+                secondsVisible: true,
+            }
+        });
+
+        const candleSeries = chart.addCandlestickSeries({
+            upColor: 'green',
+            downColor: 'red',
+            wickUpColor: 'green',
+            wickDownColor: 'red'
+        });
+
+        let processedIndex = 2; // Start after the first 2 candles used for initialization
+
+        function initializeChartData() {
+            const initialData = marketData.slice(0, 2);
+            candleSeries.setData(initialData);
+            console.log('Chart initialized with the first 5 candles');
+        }
+
+        function updateChartWithMarketData() {
+            if (processedIndex < marketData.length) {
+                const nextCandle = marketData[processedIndex];
+                processedIndex++;
+                candleSeries.update(nextCandle);
+
+                const adjustedTimeForIST = new Date((nextCandle.time - (5 * 3600 + 30 * 60)) * 1000).toLocaleString('en-IN', {
+                    timeZone: 'Asia/Kolkata',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit',
+                    hour12: false
+                });
+
+                console.log(`Chart Updated: Price: $${nextCandle.close.toFixed(2)}, Time (IST): ${adjustedTimeForIST}`);
+            } else {
+                console.log('No more data to process');
+            }
+        }
+
+        initializeChartData();
+        setInterval(updateChartWithMarketData, 1000);
+
+    </script>
+</body>
+</html>

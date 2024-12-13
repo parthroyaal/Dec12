@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Trading Simulator</title>
+    <style>
+        .floating-rectangle {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            width: 300px;
+            height: 500px;
+            background-color: rgba(0, 128, 255, 0.8);
+            border: 2px solid #0056b3;
+            border-radius: 4px;
+            display: flex;
+            flex-direction: column;
+            color: white;
+            font-family: Arial, sans-serif;
+            font-size: 12px;
+            cursor: grab;
+            z-index: 1000;
+        }
+        .log-section {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px;
+            border-bottom: 1px solid rgba(255,255,255,0.2);
+        }
+        #chartUpdateLog {
+            background-color: rgba(0,0,0,0.2);
+        }
+        #tradeLog {
+            background-color: rgba(0,0,0,0.1);
+        }
+        #profitLog {
+            background-color: rgba(0,0,0,0.05);
+        }
+        .log-entry {
+            margin-bottom: 5px;
+            word-wrap: break-word;
+        }
+        .profit-positive {
+            color: green;
+        }
+        .profit-negative {
+            color: red;
+        }
+    </style>
+</head>
+<body>
+    <div>
+        <button id="l">Long</button>
+        <button id="s">Short</button>
+        <button id="p">Pause</button>
+    </div>
+    <div id="c" style="width:100%;height:600px;"></div>
+    <div id="floatingRectangle" class="floating-rectangle">
+        <div id="chartUpdateLog" class="log-section">Chart Updates</div>
+        <div id="tradeLog" class="log-section">Trade Logs</div>
+        <div id="profitLog" class="log-section">Overall Profit</div>
+    </div>
+ 
+    <script src="https://unpkg.com/lightweight-charts/dist/lightweight-charts.standalone.production.js"></script>
+    <script>
+    const d = [
+        {time:1728877500, open:23654.15, high:23666.2, low:23632, close:23638.4},
+        {time:1728877505, open:23638.05, high:23644.4, low:23630.75, close:23642.55},
+        {time:1728877510, open:23643.5, high:23669.05, low:23643.5, close:23657.65},
+        {time:1728877515, open:23665.65, high:23672.35, low:23660.25, close:23670.35},
+        {time:1728877520, open:23675.05, high:23679.5, low:23670.3, close:23670.3},
+        {time:1728877525, open:23675.35, high:23687.75, low:23674.95, close:23681.5}
+    ].map(c => ({...c, time: c.time + (5 * 3600) + (30 * 60)}));
+
+    const floatingRectangle = document.getElementById('floatingRectangle');
+    const chartUpdateLog = document.getElementById('chartUpdateLog');
+    const tradeLog = document.getElementById('tradeLog');
+    const profitLog = document.getElementById('profitLog');
+
+    let isDragging = false;
+    let offsetX = 0;
+    let offsetY = 0;
+
+    // Profit tracking variables
+    let totalTrades = 0;
+    let profitableTrades = 0;
+    let totalProfit = 0;
+    let longTrades = 0;
+    let shortTrades = 0;
+
+    // Floating rectangle drag logic (previous implementation)
+    const startDrag = (e) => {
+        isDragging = true;
+        const rect = floatingRectangle.getBoundingClientRect();
+        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+        offsetX = clientX - rect.left;
+        offsetY = clientY - rect.top;
+        floatingRectangle.style.cursor = 'grabbing';
+    };
+
+    const onDrag = (e) => {
+        if (!isDragging) return;
+        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+        floatingRectangle.style.left = `${clientX - offsetX}px`;
+        floatingRectangle.style.top = `${clientY - offsetY}px`;
+    };
+
+    const endDrag = () => {
+        isDragging = false;
+        floatingRectangle.style.cursor = 'grab';
+    };
+
+    floatingRectangle.addEventListener('mousedown', startDrag);
+    floatingRectangle.addEventListener('touchstart', startDrag, { passive: false });
+    document.addEventListener('mousemove', onDrag);
+    document.addEventListener('touchmove', onDrag, { passive: false });
+    document.addEventListener('mouseup', endDrag);
+    document.addEventListener('touchend', endDrag);
+
+    // Update profit log
+    function updateProfitLog() {
+        const profitPercentage = totalProfit.toFixed(2);
+        const profitClass = profitPercentage >= 0 ? 'profit-positive' : 'profit-negative';
+        
+        profitLog.innerHTML = `
+            Overall Profit<br>
+            <span class="${profitClass}">Total Profit: ${profitPercentage}%</span><br>
+            Total Trades: ${totalTrades}<br>
+            Profitable Trades: ${profitableTrades}<br>
+            Long Trades: ${longTrades}<br>
+            Short Trades: ${shortTrades}
+        `;
+    }
+
+    // Log functions for different sections
+    function logChartUpdate(message) {
+        chartUpdateLog.innerHTML = `Chart Updates<br>${message}`;
+    }
+
+    function logTrade(message) {
+        tradeLog.innerHTML = `Trade Logs<br>${message}`;
+    }
+
+    const ch = LightweightCharts.createChart(document.getElementById('c'), {
+        timeScale: { timeVisible: true, secondsVisible: true }
+    });
+    const s = ch.addCandlestickSeries();
+
+    let i = 2, p = false, L = false, S = false, e = 0;
+
+    function t(x) {
+        return new Date((x - (5 * 3600 + 30 * 60)) * 1000)
+            .toLocaleString('en-IN', {
+                timeZone: 'Asia/Kolkata',
+                hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false
+            });
+    }
+
+    function u() {
+        if (p || i >= d.length) return;
+        const n = d[i];
+        i++;
+        s.update(n);
+        logChartUpdate(`Price: $${n.close.toFixed(2)}, Time: ${t(n.time)}`);
+    }
+
+    function pr(e, x, l) {
+        return (((l ? x - e : e - x) / e) * 100).toFixed(2);
+    }
+
+    s.setData(d.slice(0, 2));
+    setInterval(u, 1000);
+
+    document.getElementById('l').onclick = () => {
+        const c = d[i - 1];
+        if (L) {
+            const profit = parseFloat(pr(e, c.close, 1));
+            logTrade(`Long Close: ${profit}%, Price: $${c.close.toFixed(2)}, Time: ${t(c.time)}`);
+            totalTrades++;
+            totalProfit += profit;
+            if (profit > 0) profitableTrades++;
+            longTrades++;
+        } else {
+            logTrade(`Long Entry: Price: $${c.close.toFixed(2)}, Time: ${t(c.time)}`);
+        }
+        L = !L;
+        e = c.close;
+        updateProfitLog();
+    };
+
+    document.getElementById('s').onclick = () => {
+        const c = d[i - 1];
+        if (S) {
+            const profit = parseFloat(pr(e, c.close, 0));
+            logTrade(`Short Close: ${profit}%, Price: $${c.close.toFixed(2)}, Time: ${t(c.time)}`);
+            totalTrades++;
+            totalProfit += profit;
+            if (profit > 0) profitableTrades++;
+            shortTrades++;
+        } else {
+            logTrade(`Short Entry: Price: $${c.close.toFixed(2)}, Time: ${t(c.time)}`);
+        }
+        S = !S;
+        e = c.close;
+        updateProfitLog();
+    };
+
+    document.getElementById('p').onclick = () => {
+        p = !p;
+        logTrade(p ? 'Paused' : 'Resumed');
+    };
+</script>
+</body>
+</html>

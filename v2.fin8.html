@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Trading Simulator</title>
+    <script src="https://unpkg.com/lightweight-charts/dist/lightweight-charts.standalone.production.js"></script>
+    <style>
+        /* Your CSS remains unchanged */
+    </style>
+</head>
+<body>
+    <div id="trade-stats">
+        <div class="stat-item">
+            <div>Total Trades</div>
+            <div class="stat-value" id="total-trades">0</div>
+        </div>
+        <div class="stat-item">
+            <div>Profitable Trades</div>
+            <div class="stat-value" id="profitable-trades">0</div>
+        </div>
+        <div class="stat-item">
+            <div>Total Profit</div>
+            <div class="stat-value" id="total-profit">$0.00</div>
+        </div>
+        <div class="stat-item">
+            <div>Win Rate</div>
+            <div class="stat-value" id="win-rate">0%</div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div id="chart_container"></div>
+    </div>
+
+    <script>
+        // Initial market data (UTC timestamps)
+        let marketData = [
+            { time: 1728877500, open: 23654.15, high: 23666.2, low: 23632, close: 23638.4 },
+            { time: 1728877505, open: 23638.05, high: 23644.4, low: 23630.75, close: 23642.55 },
+            { time: 1728877510, open: 23643.5, high: 23669.05, low: 23643.5, close: 23657.65 },
+            { time: 1728877515, open: 23665.65, high: 23672.35, low: 23660.25, close: 23670.35 },
+            { time: 1728877520, open: 23675.05, high: 23679.5, low: 23670.3, close: 23670.3 }
+        ].map(candle => ({
+            ...candle,
+            time: candle.time + (5 * 3600) + (30 * 60) // Convert to IST
+        }));
+
+        function formatISTTimestamp(timestamp) {
+            const date = new Date(timestamp * 1000);
+            return date.toLocaleTimeString('en-IN', {
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+                hour12: false,
+            });
+        }
+
+        const chartContainer = document.getElementById('chart_container');
+        const chart = LightweightCharts.createChart(chartContainer, {
+            width: chartContainer.clientWidth,
+            height: 600,
+            layout: { backgroundColor: '#ffffff' },
+            grid: {
+                vertLines: { color: '#e1ecf7' },
+                horzLines: { color: '#e1ecf7' },
+            },
+            timeScale: {
+                timeVisible: true,
+                secondsVisible: true,
+                localization: {
+                    timeFormatter: formatISTTimestamp, // Use IST formatter
+                },
+            },
+        });
+
+        const candleSeries = chart.addCandlestickSeries({
+            upColor: 'green',
+            downColor: 'red',
+            wickUpColor: 'green',
+            wickDownColor: 'red',
+        });
+
+        // Initialize chart data
+        candleSeries.setData(marketData);
+
+        // Simulate real-time updates
+        setInterval(() => {
+            const lastCandle = marketData[marketData.length - 1];
+            const randomFactor = (Math.random() - 0.5) * 20;
+
+            const newCandle = {
+                time: lastCandle.time + 5, // Increment time by 5 seconds
+                open: lastCandle.close,
+                high: lastCandle.close + Math.abs(randomFactor),
+                low: lastCandle.close - Math.abs(randomFactor),
+                close: lastCandle.close + randomFactor,
+            };
+
+            marketData.push(newCandle); // Add new data
+            candleSeries.update(newCandle); // Update chart
+        }, 1000);
+    </script>
+</body>
+</html>

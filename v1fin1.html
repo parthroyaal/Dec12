@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Trading Simulator with IST Updates</title>
+    <script src="https://unpkg.com/lightweight-charts/dist/lightweight-charts.standalone.production.js"></script>
+</head>
+<body>
+    <div id="controls">
+        <button id="longBtn">Long</button>
+        <button id="shortBtn">Short</button>
+        <button id="pauseBtn">Pause</button>
+    </div>
+
+    <div id="chart_container" style="width:100%; height:600px;"></div>
+ 
+    <script>
+  const marketData = [
+            {
+                time: 1728877500,
+                open: 23654.15,
+                high: 23666.2,
+                low: 23632,
+                close: 23638.4,
+                volume: 0
+            },
+            {
+                time: 1728877505,
+                open: 23638.05,
+                high: 23644.4,
+                low: 23630.75,
+                close: 23642.55,
+                volume: 0
+            },
+            {
+                time: 1728877510,
+                open: 23643.5,
+                high: 23669.05,
+                low: 23643.5,
+                close: 23657.65,
+                volume: 0
+            },
+            {
+                time: 1728877515,
+                open: 23665.65,
+                high: 23672.35,
+                low: 23660.25,
+                close: 23670.35,
+                volume: 0
+            },
+            {
+                time: 1728877520,
+                open: 23675.05,
+                high: 23679.5,
+                low: 23670.3,
+                close: 23670.3,
+                volume: 0
+            },
+            {
+                time: 1728877525,
+                open: 23675.35,
+                high: 23687.75,
+                low: 23674.95,
+                close: 23681.5,
+                volume: 0
+            }
+        ].map(candle => ({
+            ...candle,
+            time: candle.time + (5 * 3600) + (30 * 60) // Convert to IST
+        }));
+
+
+        const chart = LightweightCharts.createChart(document.getElementById('chart_container'), {
+            timeScale: {
+                timeVisible: true,
+                secondsVisible: true,
+            }
+        });
+
+        const candleSeries = chart.addCandlestickSeries();
+
+        let processedIndex = 2;
+        let isPaused = false;
+        let inLongTrade = false;
+        let inShortTrade = false;
+        let entryPrice = 0;
+
+        function formatTime(timestamp) {
+            return new Date((timestamp - (5 * 3600 + 30 * 60)) * 1000)
+                .toLocaleString('en-IN', {
+                    timeZone: 'Asia/Kolkata',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit',
+                    hour12: false
+                });
+        }
+
+        function calculateProfit(entryPrice, exitPrice, isLong) {
+            const profitPercentage = isLong 
+                ? ((exitPrice - entryPrice) / entryPrice) * 100
+                : ((entryPrice - exitPrice) / entryPrice) * 100;
+            return profitPercentage.toFixed(2);
+        }
+
+        function initializeChartData() {
+            candleSeries.setData(marketData.slice(0, 2));
+        }
+
+        function updateChartWithMarketData() {
+            if (isPaused || processedIndex >= marketData.length) return;
+
+            const nextCandle = marketData[processedIndex];
+            processedIndex++;
+            candleSeries.update(nextCandle);
+
+            console.log(`Chart Updated: Price: $${nextCandle.close.toFixed(2)}, Time (IST): ${formatTime(nextCandle.time)}`);
+        }
+
+        document.getElementById('longBtn').addEventListener('click', () => {
+            const currentCandle = marketData[processedIndex - 1];
+            
+            if (!inLongTrade) {
+                inLongTrade = true;
+                entryPrice = currentCandle.close;
+                console.log(`Long entry : Price: $${entryPrice.toFixed(2)}, Time (IST): ${formatTime(currentCandle.time)}`);
+            } else {
+                const exitPrice = currentCandle.close;
+                const profit = calculateProfit(entryPrice, exitPrice, true);
+                console.log(`Long trade flattened: Profit: ${profit}% : Price: $${entryPrice.toFixed(2)}, Time (IST): ${formatTime(currentCandle.time)}`);
+                inLongTrade = false;
+            }
+        });
+
+        document.getElementById('shortBtn').addEventListener('click', () => {
+            const currentCandle = marketData[processedIndex - 1];
+            
+            if (!inShortTrade) {
+                inShortTrade = true;
+                entryPrice = currentCandle.close;
+                console.log(`Short entry : Price: $${entryPrice.toFixed(2)}, Time (IST): ${formatTime(currentCandle.time)}`);
+            } else {
+                const exitPrice = currentCandle.close;
+                const profit = calculateProfit(entryPrice, exitPrice, false);
+                console.log(`Short trade flattened: Profit: ${profit}%: Price: $${entryPrice.toFixed(2)}, Time (IST): ${formatTime(currentCandle.time)}`);
+                inShortTrade = false;
+            }
+        });
+
+        document.getElementById('pauseBtn').addEventListener('click', () => {
+            isPaused = !isPaused;
+            console.log(isPaused ? 'Paused' : 'Resumed');
+        });
+
+        initializeChartData();
+        setInterval(updateChartWithMarketData, 1000);
+    </script>
+</body>
+</html>
+
+<!-- The core functionality remains the same:
+
+Chart updates
+Long/Short trade entry and exit
+Profit calculation
+Pause functionality -->
