@@ -1,0 +1,223 @@
+> {
+    "op": "subscribe",
+    "args": [
+        "publicTrade.BTCUSDT"
+    ]
+}
+< {
+    "success": true,
+    "ret_msg": "",
+    "conn_id": "445ec125-46ae-483b-a167-8895cfe3591c",
+    "req_id": "",
+    "op": "subscribe"
+}
+< {
+    "topic": "publicTrade.BTCUSDT",
+    "type": "snapshot",
+    "ts": 1735599860198,
+    "data": [
+        {
+            "T": 1735599860197,
+            "s": "BTCUSDT",
+            "S": "Sell",
+            "v": "0.001",
+            "p": "92559.90",
+            "L": "MinusTick",
+            "i": "24548087-9b17-50ac-95f3-0ce2cf2c76a5",
+            "BT": false
+        }
+    ]
+}
+< {
+    "topic": "publicTrade.BTCUSDT",
+    "type": "snapshot",
+    "ts": 1735599860244,
+    "data": [
+        {
+            "T": 1735599860244,
+            "s": "BTCUSDT",
+            "S": "Buy",
+            "v": "0.018",
+            "p": "92560.00",
+            "L": "PlusTick",
+            "i": "c4836110-74ed-5e55-8433-d731f4ad5890",
+            "BT": false
+        }
+    ]
+}
+< {
+    "topic": "publicTrade.BTCUSDT",
+    "type": "snapshot",
+    "ts": 1735599860245,
+    "data": [
+        {
+            "T": 1735599860244,
+            "s": "BTCUSDT",
+            "S": "Buy",
+            "v": "0.020",
+            "p": "92560.00",
+            "L": "ZeroPlusTick",
+            "i": "996f2266-e6e0-51bc-ba27-8a9e4c9d3bf9",
+            "BT": false
+        },
+        {
+            "T": 1735599860244,
+            "s": "BTCUSDT",
+            "S": "Buy",
+            "v": "0.009",
+            "p": "92561.20",
+            "L": "PlusTick",
+            "i": "4033c121-be81-5253-855b-2d7a2a57e3b7",
+            "BT": false
+        }
+    ]
+}
+< {
+    "topic": "publicTrade.BTCUSDT",
+    "type": "snapshot",
+    "ts": 1735599860246,
+    "data": [
+        {
+            "T": 1735599860245,
+            "s": "BTCUSDT",
+            "S": "Buy",
+            "v": "0.002",
+            "p": "92561.20",
+            "L": "ZeroPlusTick",
+            "i": "c49a738e-208a-51f6-adf7-fb0bd465d943",
+            "BT": false
+        },
+        {
+            "T": 1735599860245,
+            "s": "BTCUSDT",
+            "S": "Buy",
+            "v": "0.001",
+            "p": "92561.30",
+            "L": "PlusTick",
+            "i": "9baabc67-95ba-5a74-aa4f-a75a7e7c2ed2",
+            "BT": false
+        }
+    ]
+}
+< {
+    "topic": "publicTrade.BTCUSDT",
+    "type": "snapshot",
+    "ts": 1735599860247,
+    "data": [
+        {
+            "T": 1735599860246,
+            "s": "BTCUSDT",
+            "S": "Buy",
+            "v": "0.002",
+            "p": "92561.80",
+            "L": "PlusTick",
+            "i": "2404d3ab-6546-5562-8209-5f8065c097b5",
+            "BT": false
+        },
+        {
+            "T": 1735599860246,
+            "s": "BTCUSDT",
+            "S": "Buy",
+            "v": "0.002",
+            "p": "92562.50",
+            "L": "PlusTick",
+            "i": "bc4df532-e12f-59d9-bccf-66dfc3b14c0a",
+            "BT": false
+        },
+        {
+            "T": 1735599860246,
+            "s": "BTCUSDT",
+            "S": "Buy",
+            "v": "0.001",
+            "p": "92562.50",
+            "L": "ZeroPlusTick",
+            "i": "56190e44-e057-58a4-a0a2-a9f1b0192f91",
+            "BT": false
+        }
+    ]
+}
+< {
+    "topic": "publicTrade.BTCUSDT",
+    "type": "snapshot",
+    "ts": 1735599860248,
+    "data": [
+        {
+            "T": 1735599860247,
+            "s": "BTCUSDT",
+            "S": "Buy",
+            "v": "0.006",
+            "p": "92562.50",
+            "L": "ZeroPlusTick",
+            "i": "e203c527-b9f7-5cff-9a0d-db72515fb4fe",
+            "BT": false
+        }
+    ]
+}
+< {
+    "topic": "publicTrade.BTCUSDT",
+    "type": "snapshot",
+    "ts": 1735599860255,
+    "data": [
+        {
+            "T": 1735599860253,
+            "s": "BTCUSDT",
+            "S": "Buy",
+            "v": "0.011",
+            "p": "92562.70",
+            "L": "PlusTick",
+            "i": "4043066f-9a5a-5683-b448-5be818c53d52",
+            "BT": false
+        }
+    ]
+}
+< {
+    "topic": "publicTrade.BTCUSDT",
+    "type": "snapshot",
+    "ts": 1735599860277,
+    "data": [
+        {
+            "T": 1735599860276,
+            "s": "BTCUSDT",
+            "S": "Buy",
+            "v": "0.001",
+            "p": "92566.60",
+            "L": "PlusTick",
+            "i": "98dd9e77-3ebf-526e-a3c4-5cdd9943a4b5",
+            "BT": false
+        }
+    ]
+}
+< {
+    "topic": "publicTrade.BTCUSDT",
+    "type": "snapshot",
+    "ts": 1735599860283,
+    "data": [
+        {
+            "T": 1735599860282,
+            "s": "BTCUSDT",
+            "S": "Sell",
+            "v": "0.025",
+            "p": "92567.70",
+            "L": "PlusTick",
+            "i": "bf076ee3-fb4b-5125-b78e-a05e4f76ac1e",
+            "BT": false
+        }
+    ]
+}
+< {
+    "topic": "publicTrade.BTCUSDT",
+    "type": "snapshot",
+    "ts": 1735599860284,
+    "data": [
+        {
+            "T": 1735599860283,
+            "s": "BTCUSDT",
+            "S": "Buy",
+            "v": "0.001",
+            "p": "92567.80",
+            "L": "PlusTick",
+            "i": "2b45345e-1fd1-5ce6-a3d9-3e4b7b68c76a",
+            "BT": false
+        }
+    ]
+}

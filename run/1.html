@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    
+    <script>
+// Function to fetch and parse CSV data
+async function readCSV() {
+  try {
+    // Fetch the CSV file (replace '1.csv' with your actual URL)
+    const response = await fetch('1.csv');
+    
+    if (!response.ok) {
+      throw new Error('Failed to fetch the file');
+    }
+
+    const text = await response.text();
+    const rows = text.split('\n');
+    const headers = rows[0].split(',');
+
+    // Get column indices from headers
+    const timeIndex = headers.indexOf('time');
+    const openIndex = headers.indexOf('open');
+    const highIndex = headers.indexOf('high');
+    const lowIndex = headers.indexOf('low');
+    const closeIndex = headers.indexOf('close');
+    const volumeIndex = headers.indexOf('volume');
+
+    let bars = [];
+    for (let i = 1; i < rows.length; i++) {
+      const row = rows[i].split(',');
+      if (row.length === headers.length) {
+        bars.push({
+          time: unixToMillis(parseFloat(row[timeIndex])),
+          open: parseFloat(row[openIndex]),
+          high: parseFloat(row[highIndex]),
+          low: parseFloat(row[lowIndex]),
+          close: parseFloat(row[closeIndex]),
+          volume: parseInt(row[volumeIndex])
+        });
+      }
+    }
+
+    console.log(bars); // Display the parsed data
+    return bars; // Return the bars for further processing
+  } catch (error) {
+    console.error('Error fetching CSV:', error);
+  }
+}
+
+// A helper function to convert Unix timestamp to milliseconds
+function unixToMillis(unixTimestamp) {
+  return unixTimestamp * 1000;
+}
+
+// Function to convert the parsed bars to a list of dictionaries and adjust the time
+async function convertBarsToList() {
+  try {
+    const bars = await readCSV(); // Get the parsed data from readCSV
+
+    // Convert bars into a list of dictionaries with only the required fields
+    const d = bars.map(bar => ({
+      time: bar.time,
+      open: bar.open,
+      high: bar.high,
+      low: bar.low,
+      close: bar.close
+    }));
+
+    // Apply the time adjustment: Add 5 hours and 30 minutes to each time value
+    const maindata = d.map(c => ({
+      ...c,
+      time: c.time + (5 * 3600 * 1000) + (30 * 60 * 1000)  // Add 5 hours and 30 minutes in milliseconds
+    }));
+
+    console.log(maindata); // Log the final transformed data
+    return maindata; // Return the adjusted data
+  } catch (error) {
+    console.error('Error during conversion:', error);
+  }
+}
+
+// Example usage:
+convertBarsToList().then(maindata => {
+  // You can now use 'maindata' as the list of dictionaries with adjusted time
+  console.log('Main Data:', maindata);
+});
+
+  
+    </script>
+</body>
+</html>
